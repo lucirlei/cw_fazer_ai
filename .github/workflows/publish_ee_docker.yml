@@ -1,3 +1,9 @@
+# #
+# # This action will publish Chatwoot EE docker image.
+# # This is set to run against merges to develop, master
+# # and when tags are created.
+# #
+
 name: Publish Chatwoot EE docker images
 
 on:
@@ -21,7 +27,7 @@ jobs:
         include:
           - platform: linux/amd64
             runner: ubuntu-latest
-          # ATENÇÃO: Se não tiver um runner ARM próprio, mude 'ubuntu-22.04-arm' para 'ubuntu-latest'
+          # Se não tiver runner ARM privado, mude para ubuntu-latest (emulação QEMU)
           - platform: linux/arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
@@ -31,14 +37,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # --- NOVO PASSO: Garante Swap extra para evitar erro de memória (Code 6/137) ---
+      # --- CORREÇÃO: Action corrigida para easimon/maximize-build-space ---
       - name: Maximize Build Space (Swap)
         if: matrix.runner == 'ubuntu-latest'
-        uses: unlimit-tech/maximize-build-space@v1
+        uses: easimon/maximize-build-space@master
         with:
           root-reserve-mb: 2048
-          swap-size-mb: 4096
+          swap-size-mb: 4096 # Adiciona 4GB de Swap para evitar o Exit Code 6
           remove-dotnet: 'true'
+          remove-android: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
 
@@ -47,7 +54,6 @@ jobs:
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
-      # Este passo adiciona a env VAR no final do arquivo Dockerfile localizado em docker/Dockerfile
       - name: Set Chatwoot edition
         run: |
           echo -en '\nENV CW_EDITION="ee"' >> docker/Dockerfile
@@ -55,10 +61,13 @@ jobs:
       - name: Set Docker Tags
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            echo "DOCKER_TAG=${DOCKER_REPO}:latest" >> $GITHUB_ENV
-          else
+          
+          # Se começar com 'v' (ex: v1.2), usa a tag sanitizada.
+          # Caso contrário (master, develop, etc), usa 'latest'.
+          if [[ "${{ github.ref_name }}" == v* ]]; then
             echo "DOCKER_TAG=${DOCKER_REPO}:${SANITIZED_REF}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAG=${DOCKER_REPO}:latest" >> $GITHUB_ENV
           fi
 
       - name: Set up QEMU
@@ -79,7 +88,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          # Garanta que o Dockerfile corrigido esteja nesta pasta
           file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
@@ -126,10 +134,11 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest"
-          else
+          
+          if [[ "${{ github.ref_name }}" == v* ]]; then
             TAG="${DOCKER_REPO}:${SANITIZED_REF}"
+          else
+            TAG="${DOCKER_REPO}:latest"
           fi
           
           docker buildx imagetools create -t $TAG \
@@ -140,10 +149,11 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest"
-          else
+          
+          if [[ "${{ github.ref_name }}" == v* ]]; then
             TAG="${DOCKER_REPO}:${SANITIZED_REF}"
+          else
+            TAG="${DOCKER_REPO}:latest"
           fi
           
           docker buildx imagetools inspect $TAG
