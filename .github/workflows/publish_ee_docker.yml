@@ -37,13 +37,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # --- CORREÇÃO: Action corrigida para easimon/maximize-build-space ---
+      # Action oficial para liberar espaço e evitar erro de memória
       - name: Maximize Build Space (Swap)
         if: matrix.runner == 'ubuntu-latest'
         uses: easimon/maximize-build-space@master
         with:
           root-reserve-mb: 2048
-          swap-size-mb: 4096 # Adiciona 4GB de Swap para evitar o Exit Code 6
+          swap-size-mb: 4096
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
@@ -62,8 +62,8 @@ jobs:
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
           
-          # Se começar com 'v' (ex: v1.2), usa a tag sanitizada.
-          # Caso contrário (master, develop, etc), usa 'latest'.
+          # Lógica: Se começar com 'v' (ex: v1.2), usa a tag sanitizada.
+          # Se não (ex: develop, master), força 'latest'.
           if [[ "${{ github.ref_name }}" == v* ]]; then
             echo "DOCKER_TAG=${DOCKER_REPO}:${SANITIZED_REF}" >> $GITHUB_ENV
           else
