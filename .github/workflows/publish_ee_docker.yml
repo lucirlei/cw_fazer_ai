@@ -1,9 +1,3 @@
-# #
-# # This action will publish Chatwoot EE docker image.
-# # This is set to run against merges to develop, master
-# # and when tags are created.
-# #
-
 name: Publish Chatwoot EE docker images
 
 on:
@@ -27,6 +21,7 @@ jobs:
         include:
           - platform: linux/amd64
             runner: ubuntu-latest
+          # ATENÇÃO: Se não tiver um runner ARM próprio, mude 'ubuntu-22.04-arm' para 'ubuntu-latest'
           - platform: linux/arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
@@ -36,11 +31,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # --- NOVO PASSO: Garante Swap extra para evitar erro de memória (Code 6/137) ---
+      - name: Maximize Build Space (Swap)
+        if: matrix.runner == 'ubuntu-latest'
+        uses: unlimit-tech/maximize-build-space@v1
+        with:
+          root-reserve-mb: 2048
+          swap-size-mb: 4096
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
+      # Este passo adiciona a env VAR no final do arquivo Dockerfile localizado em docker/Dockerfile
       - name: Set Chatwoot edition
         run: |
           echo -en '\nENV CW_EDITION="ee"' >> docker/Dockerfile
@@ -72,6 +79,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          # Garanta que o Dockerfile corrigido esteja nesta pasta
           file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
