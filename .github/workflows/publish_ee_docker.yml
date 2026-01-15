@@ -27,7 +27,6 @@ jobs:
         include:
           - platform: linux/amd64
             runner: ubuntu-latest
-          # Se não tiver runner ARM privado, mude para ubuntu-latest (emulação QEMU)
           - platform: linux/arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
@@ -36,18 +35,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Action oficial para liberar espaço e evitar erro de memória
-      - name: Maximize Build Space (Swap)
-        if: matrix.runner == 'ubuntu-latest'
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 2048
-          swap-size-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
 
       - name: Prepare
         run: |
@@ -61,13 +48,10 @@ jobs:
       - name: Set Docker Tags
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          
-          # Lógica: Se começar com 'v' (ex: v1.2), usa a tag sanitizada.
-          # Se não (ex: develop, master), força 'latest'.
-          if [[ "${{ github.ref_name }}" == v* ]]; then
-            echo "DOCKER_TAG=${DOCKER_REPO}:${SANITIZED_REF}" >> $GITHUB_ENV
-          else
+          if [ "${{ github.ref_name }}" = "master" ]; then
             echo "DOCKER_TAG=${DOCKER_REPO}:latest" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAG=${DOCKER_REPO}:${SANITIZED_REF}" >> $GITHUB_ENV
           fi
 
       - name: Set up QEMU
@@ -134,11 +118,10 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          
-          if [[ "${{ github.ref_name }}" == v* ]]; then
-            TAG="${DOCKER_REPO}:${SANITIZED_REF}"
-          else
+          if [ "${{ github.ref_name }}" = "master" ]; then
             TAG="${DOCKER_REPO}:latest"
+          else
+            TAG="${DOCKER_REPO}:${SANITIZED_REF}"
           fi
           
           docker buildx imagetools create -t $TAG \
@@ -149,11 +132,10 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
-          
-          if [[ "${{ github.ref_name }}" == v* ]]; then
-            TAG="${DOCKER_REPO}:${SANITIZED_REF}"
-          else
+          if [ "${{ github.ref_name }}" = "master" ]; then
             TAG="${DOCKER_REPO}:latest"
+          else
+            TAG="${DOCKER_REPO}:${SANITIZED_REF}"
           fi
           
           docker buildx imagetools inspect $TAG
