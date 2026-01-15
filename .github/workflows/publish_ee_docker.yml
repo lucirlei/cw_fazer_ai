@@ -27,7 +27,6 @@ jobs:
         include:
           - platform: linux/amd64
             runner: ubuntu-latest
-          # Se não tiver runner ARM privado, mude para ubuntu-latest (emulação QEMU)
           - platform: linux/arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
@@ -37,6 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Libera espaço e cria Swap (Evita Exit Code 6)
       - name: Maximize Build Space (Swap)
         if: matrix.runner == 'ubuntu-latest'
         uses: easimon/maximize-build-space@master
@@ -53,10 +53,18 @@ jobs:
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
-      # --- CORREÇÃO 1: Aponta para 'Dockerfile' na raiz, não 'docker/Dockerfile' ---
+      # Debug: Lista arquivos para garantir que a pasta docker existe
+      - name: Debug File Structure
+        run: |
+          echo "Listing root directory:"
+          ls -la
+          echo "Listing docker directory:"
+          ls -la docker || echo "Pasta docker não encontrada!"
+
+      # Configura a edição EE no Dockerfile dentro da pasta docker
       - name: Set Chatwoot edition
         run: |
-          echo -en '\nENV CW_EDITION="ee"' >> Dockerfile
+          echo -en '\nENV CW_EDITION="ee"' >> docker/Dockerfile
 
       - name: Set Docker Tags
         run: |
@@ -86,8 +94,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          # --- CORREÇÃO 2: Aponta para 'Dockerfile' na raiz ---
-          file: Dockerfile 
+          # Aponta para o arquivo na pasta 'docker/'
+          file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
           push: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
           outputs: type=image,name=${{ env.DOCKER_REPO }},push-by-digest=true,name-canonical=true,push=true
