@@ -11,13 +11,12 @@ on:
     branches:
       - develop
       - master
-      - main
     tags:
       - v*
   workflow_dispatch:
 
 env:
-  DOCKER_REPO: lucirleisantos/cw_fazer-ai
+  DOCKER_REPO: chatwoot/chatwoot
 
 jobs:
   build:
