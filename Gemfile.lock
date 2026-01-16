@@ -983,11 +983,6 @@ GEM
       zeitwerk (~> 2.2)
     warden (1.2.9)
       rack (>= 2.0.9)
-    web-console (4.2.1)
-      actionview (>= 6.0.0)
-      activemodel (>= 6.0.0)
-      bindex (>= 0.4.0)
-      railties (>= 6.0.0)
     web-push (3.0.1)
       jwt (~> 2.0)
       openssl (~> 3.0)
@@ -1158,7 +1153,6 @@ DEPENDENCIES
   uglifier
   valid_email2
   vite_rails
-  web-console (>= 4.2.1)
   web-push (>= 3.0.1)
   webmock
   wisper (= 2.0.0)
