@@ -80,7 +80,7 @@ gem 'barnes'
 
 ##--- gems for authentication & authorization ---##
 gem 'devise', '>= 4.9.4'
-gem 'devise-secure_password', '~> 2.0.1'
+gem 'devise-secure_password', git: 'https://github.com/chatwoot/devise-secure_password', branch: 'chatwoot'
 gem 'devise_token_auth', '>= 1.2.3'
 # two-factor authentication
 gem 'devise-two-factor', '>= 5.0.0'
@@ -221,6 +221,7 @@ group :development do
   gem 'bullet'
   gem 'letter_opener'
   gem 'scss_lint', require: false
+  gem 'web-console', '>= 4.2.1'
 
   # When we want to squash migrations
   gem 'squasher'
