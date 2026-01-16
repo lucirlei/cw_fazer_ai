@@ -221,7 +221,6 @@ group :development do
   gem 'bullet'
   gem 'letter_opener'
   gem 'scss_lint', require: false
-  gem 'web-console', '>= 4.2.1'
 
   # When we want to squash migrations
   gem 'squasher'
