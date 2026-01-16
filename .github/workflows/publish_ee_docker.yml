@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_REPO: lucirleisantos/cw_fazer-ai
+  DOCKER_REPO: cw_fazer-ai
 
 jobs:
   build:

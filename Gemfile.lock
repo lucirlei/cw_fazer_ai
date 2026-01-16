@@ -13,6 +13,15 @@ GIT
       net-http-persistent (~> 4.0)
       nokogiri (~> 1, >= 1.10.8)
 
+GIT
+  remote: https://github.com/chatwoot/devise-secure_password
+  revision: adcc85fe1babfe40feae73dbcae64d14fff86e69
+  branch: chatwoot
+  specs:
+    devise-secure_password (2.0.1)
+      devise (>= 4.0.0, < 5.0.0)
+      railties (>= 5.0.0, < 8.0.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -213,9 +222,6 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
-    devise-secure_password (2.0.1)
-      devise (>= 4.0.0, < 5.0.0)
-      railties (>= 5.0.0, < 8.0.0)
     devise-two-factor (6.1.0)
       activesupport (>= 7.0, < 8.1)
       devise (~> 4.0)
@@ -977,6 +983,11 @@ GEM
       zeitwerk (~> 2.2)
     warden (1.2.9)
       rack (>= 2.0.9)
+    web-console (4.2.1)
+      actionview (>= 6.0.0)
+      activemodel (>= 6.0.0)
+      bindex (>= 0.4.0)
+      railties (>= 6.0.0)
     web-push (3.0.1)
       jwt (~> 2.0)
       openssl (~> 3.0)
@@ -1033,7 +1044,7 @@ DEPENDENCIES
   datadog (~> 2.0)
   debug (~> 1.8)
   devise (>= 4.9.4)
-  devise-secure_password (~> 2.0.1)
+  devise-secure_password!
   devise-two-factor (>= 5.0.0)
   devise_token_auth (>= 1.2.3)
   dotenv-rails (>= 3.0.0)
@@ -1147,6 +1158,7 @@ DEPENDENCIES
   uglifier
   valid_email2
   vite_rails
+  web-console (>= 4.2.1)
   web-push (>= 3.0.1)
   webmock
   wisper (= 2.0.0)
